@@ -1,0 +1,99 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+<title>{{webConfig.name}}</title>
+<meta name="description" content="{{webConfig.description}}"/>
+<meta name="keywords" content="{{webConfig.keywords}}"/>
+<link rel="icon" href="/favicon.ico" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.ico">
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.login-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    width: 300px;
+}
+.login-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.login-container button[id="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #5cb85c;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.login-container button[id="submit"]:hover {
+    background-color: #4cae4c;
+}
+</style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>用户登录</h2>
+        <form action="javascript:void(0);">
+            <input type="text" id="username" placeholder="用户名" value="" required>
+            <input type="password" id="password" placeholder="密码" value="" required>
+            <button type="button" id="submit">登录</button>
+        </form>
+    </div>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/md5.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#submit").click(function(){
+            login();
+        });
+    });
+
+
+    function login(){
+        $.ajax({
+            url: '/api/user/login',
+            type: 'POST',
+            data: {
+                'username': $('#username').val(),
+                'password': $('#password').val()
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.code == 200){
+                    window.location.href = '/';
+                }else{
+                    alert(data.msg);
+                }
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

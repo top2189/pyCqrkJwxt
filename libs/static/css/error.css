@@ -1,0 +1,29 @@
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    margin: 0;
+}
+.container {
+    text-align: center;
+}
+h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+p {
+    font-size: 1.2em;
+    margin: 0.5em 0;
+}
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+a:hover {
+    color: #087c27;
+}

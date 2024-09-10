@@ -1,0 +1,173 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+<title>{{webConfig.name}}</title>
+<meta name="description" content="{{webConfig.description}}"/>
+<meta name="keywords" content="{{webConfig.keywords}}"/>
+<link rel="icon" href="/favicon.ico" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.ico">
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="/static/css/materialdesignicons.min.css" rel="stylesheet">
+
+<link href="/static/css/table.css" rel="stylesheet">
+
+</head>
+<body>
+<span id="auth" style="display:none">{{auth}}</span>
+
+<header id="header">
+  <ul class="top-menu">
+    <li id="guide" class="line-trigger">
+      <div class="line-wrap">
+        <div class="line top"></div>
+        <div class="line center"></div>
+        <div class="line bottom"></div>
+      </div>
+    </li>
+    <li class="site-logo hidden-xxs">
+      <span class="dream-title">{{webConfig.name}}</span>
+    </li>
+    <li class="pull-right dropdown-right">
+        <div class="dropdown">
+            <a class="dropbtn">
+            <img class="img-avatar img-avatar-48" src="https://q2.qlogo.cn/headimg_dl?dst_uin=2189217048&spec=100" class="avatar" alt="头像">
+            <!--个人信息--></a>
+            <div class="dropdown-content">
+                <a href="/person.html">查看个人信息</a>
+                <a href="/edit_pwd.html">修改密码</a>
+                <a href="/action/logout">退出登录</a>
+            </div>
+        </div>
+    </li>
+  </ul>
+</header>
+<section id="main"> 
+  <!-- 左侧 -->
+  <aside id="sidebar">
+    <ul class="main-menu">
+      <li>
+        <a href="/index.html"><i class="mdi mdi-server-network"></i> 服务信息</a>
+      </li>
+      <li class="active">
+        <a href="/proxies.html"><i class="mdi mdi-cloud-check"></i> 代理连接</a>
+      </li>
+      <li>
+        <a href="/users.html"><i class="mdi mdi-account-multiple"></i> 用户管理</a>
+      </li>
+      <li>
+        <a href="/settings.html"><i class="mdi mdi-settings"></i> 系统设置</a>
+      </li>
+    </ul>
+  </aside>
+  <!-- end 左侧 -->
+  <section id="content">
+    <div class="container-fluid">
+        <div class="row">
+          <div class="title">
+              <h2 class="title-text">代理列表</h2>
+          </div>
+
+          <table id="roxiesList" class="table table-bordered">
+              <thead>
+                  <tr>
+                      <th>用户</th>
+                      <th>名称</th>
+                      <th>类型</th>
+                      <th>端口</th>
+                      <!-- <th>连接</th> -->
+                      <th>入口</th>
+                      <th>出口</th>
+                      <th>状态</th>
+                  </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+          </table>
+        </div>
+    </div>
+    <footer class="footer">
+        {{webConfig.copyright}}
+    </footer>
+  </section>
+</section>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/md5.min.js"></script>
+<script>
+    getProxies();
+    // setInterval(function(){
+    //     getServerInfo();
+    // },5000);
+
+    function formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 Bytes';
+
+      let k = 1024;
+      let dm = decimals < 0 ? 0 : decimals;
+      let sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+      let i = Math.floor(Math.log(bytes) / Math.log(k));
+
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    function getProxies(){
+        t = Math.floor(Date.now() / 1000);
+        auth = $('#auth').text()
+        s = $('#v').text()
+        sign = md5(t+auth);
+
+        $.ajax({
+            url: '/api/console/proxies',
+            type: 'POST',
+            data: {
+                'sign':sign,
+                's':auth,
+                't':t
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.code == 200){
+                  var table = $('#roxiesList');
+                  var tbody = table.find('tbody');
+
+                  if (data.sums == 0){
+                      tbody.append('<tr><td colspan="7">暂无数据</td></tr>');
+                      return;
+                  }
+
+                  var todayTrafficIn = 0;
+                  var todayTrafficOut = 0;
+                  var state = 'OFF';
+                  var css = 'offline';
+
+                  tbody.empty();
+                  
+
+                  for (var i = 0; i < data.sums; i++) {
+                    if (data.data[i].status == 'online'){
+                        state = 'ON';
+                        css = 'online';
+                    }
+                    todayTrafficIn = data.data[i].todayTrafficIn;
+                    todayTrafficOut = data.data[i].todayTrafficOut;
+                    tbody.append('<tr><td>'+data.data[i].name.split('.')[0]+'</td><td>'+data.data[i].name.split('.')[1]+'</td><td>'+data.data[i].type+'</td><td>'+data.data[i].port+'</td><!--<td>'+data.data[i].curConns+'</td>--><td>'+formatBytes(data.data[i].todayTrafficIn)+'</td><td>'+formatBytes(data.data[i].todayTrafficOut)+'</td><td><span class="'+css+'">'+state+'</span></td></tr>');
+                  }
+                }
+            },
+            error: function(){
+                // error
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

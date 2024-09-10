@@ -1,0 +1,354 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+<title>{{webConfig.name}}</title>
+<meta name="description" content="{{webConfig.description}}"/>
+<meta name="keywords" content="{{webConfig.keywords}}"/>
+<link rel="icon" href="/favicon.ico" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.ico">
+    
+<!-- <link rel="stylesheet" href="/static/css/bootstrap.min.css"> -->
+
+<link href="http://lyear.itshubao.com/css/bootstrap.min.css" rel="stylesheet">
+<link href="http://lyear.itshubao.com/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="http://lyear.itshubao.com/css/style.min.css" rel="stylesheet">
+
+<style>
+    .custom-cell {
+        /* 其他样式 */
+        word-wrap: break-word;
+    }
+    .class-name{
+        color: green;
+    }
+    .table-header th{
+        text-align: center;
+    }
+    @media screen and (max-width: 768px) {
+
+        table {
+            font-size: 0.5em;
+        }
+    }
+</style>
+</head>
+<body>
+<!-- <span id="auth" style="display:none">{{auth}}</span> -->
+<div class="lyear-layout-web">
+    <main class="lyear-layout-container">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">班级课表查询</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="classModel" class="modal fade query_class" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" style="display: none;">
+                                <div class="modal-dialog" style="width: 90%;" role="document">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                      <h4 class="modal-title" id="classModalLabel"></h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table id="classList" class="table table-bordered table-striped text-center">
+                                                <thead>
+                                                    <tr class="table-header">
+                                                        <th>时间</th>
+                                                        <th>周一</th>
+                                                        <th>周二</th>
+                                                        <th>周三</th>
+                                                        <th>周四</th>
+                                                        <th>周五</th>
+                                                        <th>周六</th>
+                                                        <th>周日</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="form-group">
+                                <div class="row">
+                                  <div class="col-xs-6">
+                                    <select class="form-control" id="collegeSelect" size="1">
+                                        <option>学院</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-xs-6">
+                                    <select class="form-control" id="majorSelect" size="1">
+                                        <option>专业</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-xs-6">
+                                    <select class="form-control" id="gradeSelect" size="1">
+                                        <option>年级</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-xs-6">
+                                    <select class="form-control" id="classSelect" size="1">
+                                        <option>班级</option>
+                                        <option value="1班">1班</option>
+                                        <option value="2班">2班</option>
+                                        <option value="3班">3班</option>
+                                        <option value="4班">4班</option>
+                                        <option value="5班">5班</option>
+                                        <option value="6班">6班</option>
+                                    </select>
+                                  </div>
+
+                                  <div class="col-xs-12">
+                                    <button type="button" class="btn btn-block btn-primary" id="queryClass">查询</button>
+                                  </div>
+
+                                </div>
+                              </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="/static/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="http://lyear.itshubao.com/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="http://lyear.itshubao.com/js/perfect-scrollbar.min.js"></script>
+<script type="text/javascript" src="http://lyear.itshubao.com/js/main.min.js"></script>
+
+<script src="/static/js/md5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var initData;
+        var collegeId;
+
+        initDate();
+        
+
+        $.ajax({
+            url: '/student/init/loadSelect',
+            type: 'get',
+            success: function (data) {
+                if (data.code == 200){
+                    let collegeSelect = $('#collegeSelect');
+                    let s,key,value;
+                    initData = data.data;
+                    for (let i = 0; i < data.data.college.length; i++) {
+                        s = data.data.college[i];
+                        key = Object.keys(s);
+                        value = Object.values(s);
+                        collegeSelect.append('<option value="' + value + '">' + key + '</option>');
+                    }
+                    let majorSelect = $('#major-select');
+                } else {
+                    alert(data.msg);
+                }
+            }
+        });
+
+        $('#collegeSelect').change(function() {
+            collegeId = $(this).val();
+            $.ajax({
+                url: '/api/data/major.json',
+                type: 'post',
+                data: {
+                    collegeId: collegeId
+                },
+                success: function (data) {
+                    if(data.code){
+                        let majorSelect = $('#majorSelect');
+                        majorSelect.empty();
+                        $.each(data.data, function(index, item) {
+                            majorSelect.append('<option value="' + item.dm + '">' + item.dmmc + '</option>');
+                        });
+                    }
+                }
+            });
+        });
+
+
+        $('#queryClass').click(function(){
+            searchClass();
+        })
+
+        
+    });
+
+    function initDate(){
+        const currentDate = new Date();
+
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        let t = currentYear;
+
+        if (currentMonth < 9 || (currentMonth === 9 && currentDate.getDate() < 1)) {
+            t = currentYear - 1;
+        }
+
+        for (let i = 0; i < 5; i++) {
+            const option = document.createElement("option");
+            option.value = t;
+            option.textContent = t + "级";
+            document.getElementById("gradeSelect").appendChild(option);
+            t--;
+        }
+
+    }
+
+    function get_post_data(){
+        let post_data = {
+            "collegeId":$("#collegeSelect").val(),
+            "majorId": $("#majorSelect").val(),
+            "grade": $("#gradeSelect").val(),
+            "class": $("#classSelect").val()
+        }
+
+        return post_data;
+    }
+
+    function searchClass(){
+        let post_data = get_post_data();
+        $.ajax({
+            url: '/api/student/classTable.json',
+            type: 'POST',
+            data: post_data,
+            success: function (data) {
+                if (data.code === 200) {
+                    var table = $('#classList');
+                    var tbody = table.find('tbody');
+                    var classModalLabel = $('#classModalLabel');
+                    
+                    classModalLabel.text('数据加载失败');
+                    tbody.empty();
+
+                    if (data.sums == 0){
+                        tbody.append('<tr><td colspan="8">数据查询失败</td></tr>');
+                        $('#classModel').modal('show');
+
+                        return;
+                    }
+
+                    // for (var i = 0; i < data.sums; i++) {
+                    //   tbody.append('<tr><td>'+(data.data[0])+'</td><td>'+data.data[i].username+'</td><td>'+data.data[i].address+'</td><td>'+last_login+'</td></tr>');
+                    // }
+                    var tableHtml = '';
+                    for (var i = 0; i < data.data.length; i++) {
+                        tableHtml += '<tr>';
+                        for (var j = 0; j < data.data[i].length; j++) {
+                            var cellText = data.data[i][j].replace(/\n/g, '<br>').replace('室','室<br><br>');
+
+                            cellText = cellText.replace(/&#([^#]*)#&/g, function(match, p1) {
+                                return '<span class="class-name">' + p1 + '</span>';
+                            });
+                            if (j == 0){
+                                cellText = cellText.replace(/-/g,'<br>-<br>')
+                            }
+                            tableHtml += '<td class="custom-cell">' + cellText + '</td>';
+                        }
+                        tableHtml += '</tr>';
+                    }
+                    tbody.append(tableHtml);
+
+                    classModalLabel.text(data.title);
+                    $('#classModel').modal('show');
+                } else {
+                    alert(data.msg);
+                }
+            }
+        });
+    }
+
+
+    function query(teacherName){
+        // t = Math.floor(Date.now() / 1000);
+        // auth = $('#auth').text()
+        // sign = md5(t+auth);
+
+        $.ajax({
+            url: '/api/teacher/classTable.json',
+            type: 'POST',
+            data: {
+                'teacherName':teacherName
+                // 'sign':sign,
+                // 's':auth,
+                // 't':t
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.code == 200){
+                    // 清空表格数据
+                    // $('#classList').empty();
+                    // 使用for循环，将数据写入到表格中
+                    // for (var i = 0; i < data.sums; i++) {
+                    //     $('#classList').append('<tr><td>'+i+'</td><td>'+data.data[i].username+'</td><td>'+data.data[i].password+'</td><td>'+data.data[i].token+'</td></tr>');
+                    // }
+                    var last_login;
+                    var table = $('#classList');
+                    var tbody = table.find('tbody');
+                    var classModalLabel = $('#classModalLabel');
+                    
+                    classModalLabel.text('数据加载失败');
+                    tbody.empty();
+
+                    if (data.sums == 0){
+                        tbody.append('<tr><td colspan="8">数据查询失败</td></tr>');
+                        $('#classModel').modal('show');
+
+                        return;
+                    }
+
+                    // for (var i = 0; i < data.sums; i++) {
+                    //   tbody.append('<tr><td>'+(data.data[0])+'</td><td>'+data.data[i].username+'</td><td>'+data.data[i].address+'</td><td>'+last_login+'</td></tr>');
+                    // }
+                    var tableHtml = '';
+                    for (var i = 0; i < data.data.length; i++) {
+                        tableHtml += '<tr>';
+                        for (var j = 0; j < data.data[i].length; j++) {
+                            var cellText = data.data[i][j].replace(/\n/g, '<br>').replace('室','室<br><br>');
+
+                            cellText = cellText.replace(/&#([^#]*)#&/g, function(match, p1) {
+                                return '<span class="class-name">' + p1 + '</span>';
+                            });
+                            if (j == 0){
+                                cellText = cellText.replace(/-/g,'<br>-<br>')
+                            }
+                            tableHtml += '<td class="custom-cell">' + cellText + '</td>';
+                        }
+                        tableHtml += '</tr>';
+                    }
+                    tbody.append(tableHtml);
+
+                    classModalLabel.text(data.title);
+                    $('#classModel').modal('show');
+
+                }else{
+                    // error
+                }
+            },
+            error: function(){
+                // error
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

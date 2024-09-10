@@ -1,0 +1,246 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+<title>{{webConfig.name}}</title>
+<meta name="description" content="{{webConfig.description}}"/>
+<meta name="keywords" content="{{webConfig.keywords}}"/>
+<link rel="icon" href="/favicon.ico" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.ico">
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="/static/css/materialdesignicons.min.css" rel="stylesheet">
+
+<link href="/static/css/table.css" rel="stylesheet">
+<style>
+  .btn-info {
+    background-color: #48b0f7;
+    border-color: #48b0f7;
+    color: #fff!important;
+  }
+  .btn-info:hover {
+    background-color: #65bdf8;
+    border-color: #65bdf8;
+  }
+</style>
+
+</head>
+<body data-theme="light">
+<span id="auth" style="display:none">{{auth}}</span>
+
+<header id="header">
+  <ul class="top-menu">
+    <li id="guide" class="line-trigger">
+      <div class="line-wrap">
+        <div class="line top"></div>
+        <div class="line center"></div>
+        <div class="line bottom"></div>
+      </div>
+    </li>
+    <li class="site-logo hidden-xxs">
+      <span class="dream-title">{{webConfig.name}}</span>
+    </li>
+    <li class="pull-right dropdown-right">
+        <div class="dropdown">
+            <a class="dropbtn">
+            <img class="img-avatar img-avatar-48" src="https://q2.qlogo.cn/headimg_dl?dst_uin=2189217048&spec=100" class="avatar" alt="头像">
+            <!--个人信息--></a>
+            <div class="dropdown-content">
+                <a href="/person.html">查看个人信息</a>
+                <a href="/edit_pwd.html">修改密码</a>
+                <a href="/action/logout">退出登录</a>
+            </div>
+        </div>
+    </li>
+  </ul>
+</header>
+<section id="main"> 
+  <!-- 左侧 -->
+  <aside id="sidebar">
+    <ul class="main-menu">
+      <li>
+        <a href="/index.html"><i class="mdi mdi-server-network"></i> 服务信息</a>
+      </li>
+      <li>
+        <a href="/proxies.html"><i class="mdi mdi-cloud-check"></i> 代理连接</a>
+      </li>
+      <li>
+        <a href="/users.html"><i class="mdi mdi-account-multiple"></i> 用户管理</a>
+      </li>
+      <li class="active">
+        <a href="/settings.html"><i class="mdi mdi-settings"></i> 系统设置</a>
+      </li>
+    </ul>
+  </aside>
+  <!-- end 左侧 -->
+  <section id="content">
+    <div class="container-fluid">
+        <div class="title">
+          <h2 class="title-text">系统设置</h2>
+        </div>
+
+        <form id="config-form">
+            <div class="form-group">
+                <label for="name">网站名称:</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{webConfig.name}}">
+            </div>
+            <div class="form-group">
+                <label for="url">网站地址:</label>
+                <input type="text" class="form-control" id="url" name="url" value="{{webConfig.url}}">
+            </div>
+            <div class="form-group">
+                <label for="keywords">网站关键词:</label>
+                <input type="text" class="form-control" id="keywords" name="keywords" value="{{webConfig.keywords}}">
+            </div>
+            <div class="form-group">
+                <label for="description">网站描述:</label>
+                <input type="text" class="form-control" id="description" name="description" value="{{webConfig.description}}">
+            </div>
+            <div class="form-group">
+                <label for="copyright">网站版权:</label>
+                <input type="text" class="form-control" id="copyright" name="copyright" value="{{webConfig.copyright}}">
+            </div>
+
+            <div class="form-group">
+                <label for="copyright">Frp接口地址:</label>
+                <input type="text" class="form-control" id="frpSrc" name="frpSrc" value="{{frpConfig.domain}}">
+            </div>
+
+            <div class="form-group">
+                <label for="copyright">用户名:</label>
+                <input type="text" class="form-control" id="frpUser" name="frpUser" value="{{frpConfig.username}}">
+            </div>
+
+            <div class="form-group">
+                <label for="copyright">密码:</label>
+                <input type="password" class="form-control" id="frpPwd" name="frpPwd" value="{{frpConfig.password}}">
+            </div>
+
+            <button type="button" style="width: 100%;" class="btn btn-info" id="submit">提交</button>
+        </form>
+
+    </div>
+    <footer class="footer">
+        {{webConfig.copyright}}
+    </footer>
+  </section>
+</section>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/md5.min.js"></script>
+<script>
+    setInterval(function(){
+        freshAuth();
+    },5000);
+
+    $(document).ready(function() {
+        $('#submit').click(function() {
+          t = Math.floor(Date.now() / 1000);
+          auth = $('#auth').text();
+          s = $('#v').text();
+          sign = md5(t+auth);
+
+            var data = {
+                'sign':sign,
+                's':auth,
+                't':t,
+                'name': $('#name').val(),
+                'url': $('#url').val(),
+                'keywords': $('#keywords').val(),
+                'description': $('#description').val(),
+                'copyright': $('#copyright').val(),
+                'frpSrc': $('#frpSrc').val(),
+                'frpUser': $('#frpUser').val(),
+                'frpPwd': $('#frpPwd').val(),
+            };
+
+            $.post('/api/console/settings/save', data, function(response) {
+                if (response.code === 200) {
+                    alert('处理成功');
+                } else {
+                    alert('处理失败');
+                }
+            });
+        });
+    });
+
+    function getProxies(){
+        t = Math.floor(Date.now() / 1000);
+        auth = $('#auth').text()
+        s = $('#v').text()
+        sign = md5(t+auth);
+
+        $.ajax({
+            url: '/api/console/proxies',
+            type: 'POST',
+            data: {
+                'sign':sign,
+                's':auth,
+                't':t
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.code == 200){
+                  var table = $('#roxiesList');
+                  var tbody = table.find('tbody');
+
+                  if (data.sums == 0){
+                      tbody.append('<tr><td colspan="7">暂无数据</td></tr>');
+                      return;
+                  }
+
+                  var todayTrafficIn = 0;
+                  var todayTrafficOut = 0;
+                  var state = 'OFF';
+                  var css = 'offline';
+
+                  tbody.empty();
+                  
+
+                  for (var i = 0; i < data.sums; i++) {
+                    if (data.data[i].status == 'online'){
+                        state = 'ON';
+                        css = 'online';
+                    }
+                    todayTrafficIn = data.data[i].todayTrafficIn;
+                    todayTrafficOut = data.data[i].todayTrafficOut;
+                    tbody.append('<tr><td>'+data.data[i].name.split('.')[0]+'</td><td>'+data.data[i].name.split('.')[1]+'</td><td>'+data.data[i].type+'</td><td>'+data.data[i].port+'</td><!--<td>'+data.data[i].curConns+'</td>--><td>'+formatBytes(data.data[i].todayTrafficIn)+'</td><td>'+formatBytes(data.data[i].todayTrafficOut)+'</td><td><span class="'+css+'">'+state+'</span></td></tr>');
+                  }
+                }
+            },
+            error: function(){
+                // error
+            }
+        });
+    }
+
+    function freshAuth(){
+        t = Math.floor(Date.now() / 1000);
+        auth = $('#auth').text()
+        sign = md5(t+auth);
+
+        $.ajax({
+            url: '/api/console/fresh',
+            type: 'POST',
+            data: {
+                'sign':sign,
+                's':auth,
+                't':t
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.code == 200){
+                    $('#auth').text(data.auth);
+                }
+            }
+        });
+    }
+
+
+
+</script>
+</body>
+</html>
