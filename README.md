@@ -1,9 +1,9 @@
 
 <div align="center">
-    <h1>重庆人科教务系统助手（<span style="color:pink">pyCqrkJwxt</span>）</h1>
-    <p style="color:green">使用Python3来实现自动化调用教务系统Api接口</p>
-    <p style="color:orange">注意：本代码仅用于学习Python爬虫</p>
-    <p style="color:orange">任何人或组织使用本项目的代码进行的任何违法行为与本人无关</p>
+    <h1>重庆人科教务系统助手（pyCqrkJwxt）</h1>
+    <p>使用Python3来实现自动化调用教务系统Api接口</p>
+    <p>注意：本代码仅用于学习Python爬虫</p>
+    <p>任何人或组织使用本项目的代码进行的任何违法行为与本人无关</p>
 </div>
 
 
