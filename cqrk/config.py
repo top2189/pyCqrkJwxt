@@ -19,6 +19,9 @@ webVpnUrl       = 'https://webvpn.cqrk.edu.cn:8480'
 webVpnJwxt      = 'https://jwxt-18080.webvpn.cqrk.edu.cn:8480'
 
 # 相关接口方法
+jsMainPage      = '/jsxsd/framework/jsMain.jsp'
+
+
 mainPage        = '/jsxsd/framework/xsMain_new.jsp'
 getLoginScode   = '/Logon.do?method=logon&flag=sess'
 loginPost       = '/Logon.do?method=logon'

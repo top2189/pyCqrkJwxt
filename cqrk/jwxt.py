@@ -9,7 +9,7 @@ import re
 import os
 
 class jwxt(core):
-    def __init__(self,cookies=None,use_web_vpn=False,):
+    def __init__(self,cookies=None,use_web_vpn=False):
         super().__init__()
 
         self.domain = self.config.domain
@@ -20,6 +20,34 @@ class jwxt(core):
             
         self.cookies = cookies
 
+    def get(self,
+            url: str='',
+            api:str='',
+            headers: dict = None
+            ) -> requests.Response:
+        """发送get请求"""
+
+        if headers is None:
+            headers = self.config.headers
+        if url == '':
+            url = self.domain + api
+        response = requests.get(url=url, headers=headers, cookies=self.cookies)
+        return response
+    
+    def post(self,
+             url: str='',
+             api:str='',
+             data:dict={},
+             headers: dict = None
+             ) -> requests.Response:
+        """发送post请求"""
+        if headers is None:
+            headers = self.config.headers
+        if url == '':
+            url = self.domain + api
+        response = requests.post(url=url,data=data, headers=headers, cookies=self.cookies)
+        return response
+    
     def get_collegeID(self,collegeName:str) -> str:
         """获取学院ID"""
         if collegeName == '':
@@ -74,33 +102,14 @@ class jwxt(core):
                     
         return major_id
     
-    def get(self,
-            url: str='',
-            api:str='',
-            headers: dict = None
-            ) -> requests.Response:
-        """发送get请求"""
-
-        if headers is None:
-            headers = self.config.headers
-        if url == '':
-            url = self.domain + api
-        response = requests.get(url=url, headers=headers, cookies=self.cookies)
-        return response
-    
-    def post(self,
-             url: str='',
-             api:str='',
-             data:dict={},
-             headers: dict = None
-             ) -> requests.Response:
-        """发送post请求"""
-        if headers is None:
-            headers = self.config.headers
-        if url == '':
-            url = self.domain + api
-        response = requests.post(url=url,data=data, headers=headers, cookies=self.cookies)
-        return response
+    def get_user_name(self) -> str:
+        """获取已经登录的用户名称"""
+        html = self.get(api=self.config.jsMainPage).text
+        soup = BeautifulSoup(html, 'html.parser')
+        user_name = soup.find('span', attrs={'class': 'glyphicon-class ckgrxx'}).text
+        
+        return user_name
+        
     
     def joinCourse(self,course_name,teacher_name='',xk_name='') -> dict:
         """ 加入指定名称的课程
@@ -329,22 +338,6 @@ class jwxt(core):
         return result
 
 
-    def getMainPageSoup(self) -> BeautifulSoup:
-        """获取主页面的soup对象
-
-        Returns:
-            BeautifulSoup: soup对象
-        """
-        response = self.get(api=self.config.mainPage)
-        if response.status_code != 200:
-            self.logger.error(f'响应码错误，错误码{response.status_code}')
-            False
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-
-        return soup
-    
     def getSheetID(self) -> str:
         """获取当前学期ID
         
@@ -370,7 +363,7 @@ class jwxt(core):
             int: 当前的周数
         """
 
-        mainPageSoup = self.getMainPageSoup()
+        mainPageSoup = self.__getMainPageSoup()
 
         return int(mainPageSoup.find(class_='main_text main_color').text[1:-1])
     
@@ -545,7 +538,6 @@ class jwxt(core):
 
         return data
     
-    
     def getClassCourse(self,
                        college_id:str='',
                        college_name:str='',
@@ -620,10 +612,6 @@ class jwxt(core):
 
         return (xnxqh,class_name,data)
 
-
-
-
-
     def getTeacherCourse(self,teacherName='',save_cache=True,save_path=None):
         """ 获取教师课表
 
@@ -665,7 +653,7 @@ class jwxt(core):
         """ 获取课程表ID
         """
         # 解析HTML内容
-        mainPageSoup = self.getMainPageSoup()
+        mainPageSoup = self.__getMainPageSoup()
         
         # 获取所有的 option 标签
         options = mainPageSoup.find_all('option')
@@ -726,4 +714,19 @@ class jwxt(core):
             return False
 
 
+    def __getMainPageSoup(self) -> BeautifulSoup:
+        """获取主页面的soup对象
+
+        Returns:
+            BeautifulSoup: soup对象
+        """
+        response = self.get(api=self.config.mainPage)
+        if response.status_code != 200:
+            self.logger.error(f'响应码错误，错误码{response.status_code}')
+            False
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+
+        return soup
     

@@ -24,8 +24,9 @@ class user(core):
 
         self.webVpn = use_web_vpn
         self.domain = self.config.domain
+        self.use_web_vpn = use_web_vpn
 
-        if self.username:
+        if use_web_vpn:
             self.cookie = 'webvpn_'+self.username
         else:
             self.cookie = self.username
@@ -36,7 +37,11 @@ class user(core):
             self.domain = self.config.webVpnJwxt
     
     def auth(self):
-        self.cookie = 'webvpn_'+self.username
+        if self.use_web_vpn:
+            self.cookie = 'webvpn_'+self.username
+        else:
+            self.cookie = self.username
+
         if not self.isCookieEnable():
             self.logger.warning('登录失效，重新登录中...')
             
@@ -47,6 +52,7 @@ class user(core):
                     self.logger.warning(f'第{i+1}次登录失败，重新尝试中...')
             
             exit()
+        
 
     def login(self,
               user=None,
@@ -131,7 +137,12 @@ class user(core):
         dataStr = request.post(f'{self.domain}{self.config.getLoginScode}', headers=self.config.headers, cookies=cookies).text
         scode   = dataStr.split("#")[0]
         code    = f"{self.username}%%%{self.password}"
-        sxh     = dataStr.split("#")[1]
+        try:
+            sxh     = dataStr.split("#")[1]
+        except:
+            # 出现这个错误一般是由于多台设备同时登录教务系统，这里重新登录一下
+            return self.login(self,user,password,use_cookie,JSESSIONID)
+        
         encoded = ""
 
         for i in range(0, len(code)):
@@ -191,7 +202,7 @@ class user(core):
         if self.username is None:
             return None
         
-        self.cookie = 'webvpn_'+self.username
+        # self.cookie = 'webvpn_'+self.username
 
         cookieFile = f'{self.ROOT}/cookies/{self.cookie}.pkl'
         if not os.path.exists(cookieFile):

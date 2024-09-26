@@ -28,9 +28,6 @@ class web(core):
     def __init__(self,DEBUG=None):
         super().__init__(DEBUG)
 
-        # TODO: 本地测试使用
-        # url = 'http://185.242.234.55:6443'
-
         self.authKey = md5(get_serial_number())
 
         self.app = Flask('frp_console_web')

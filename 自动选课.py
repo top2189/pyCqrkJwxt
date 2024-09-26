@@ -16,4 +16,4 @@ User.auth()
 
 Jwxt = cqrk.jwxt(User.loadCookie(),use_web_vpn=True)
 
-print(Jwxt.joinCourse('乒乓球','xxx','体育'))
+print(Jwxt.joinCourse('乒乓球','老师名称','体育'))

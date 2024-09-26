@@ -17,6 +17,7 @@ class core:
         os.makedirs(self.ROOT+'/libs/data/',      exist_ok=True)
         os.makedirs(self.ROOT+'/libs/templates/', exist_ok=True)
         os.makedirs(self.ROOT+'/libs/static/',    exist_ok=True)
+        os.makedirs(self.ROOT+'/cookies/',    exist_ok=True)
 
 
         self.logger   = logging.getLogger(__name__)

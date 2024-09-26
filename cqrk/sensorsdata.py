@@ -33,7 +33,7 @@ class sensors:
     
     # def generate_cookies(self, length):
 
-    def generate_sensorsdata2015jssdkcross(self,user_id=''):
+    def generate(self,user_id=''):
         if user_id == '':
             user_id = self.generate_user_id()
 
