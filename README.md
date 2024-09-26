@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ## 登录
 登录教务系统，这里我们可以通过webvpn来登录，也可以通过内网直接登录教务系统。
 
-`导入包文件，并实例化对象`
+`导入包文件`
 ```python
 import cqrk
 ```
