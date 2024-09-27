@@ -1,4 +1,4 @@
-from .config import headers
+from ..config.config import headers
 import time
 import random
 import base64

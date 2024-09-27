@@ -2,9 +2,8 @@ import pickle
 from typing import Union
 
 from bs4 import BeautifulSoup
-from cqrk.core import core
-from cqrk.sensorsdata import sensors
-from cqrk.tool import get_redirect
+from ..base.core import core
+from cqrk.tools.sensorsdata import sensors
 from urllib.parse import urlparse, parse_qs
 import requests
 import os

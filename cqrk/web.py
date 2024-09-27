@@ -1,6 +1,6 @@
-from .tool import *
-from .core import core
-from .powerList import Power
+from .tools.tool import *
+from .base.core import core
+from .config.powerList import Power
 
 from enum import Enum
 
@@ -8,16 +8,13 @@ from flask import Flask, render_template, request,abort, redirect, send_file, ur
 from flask_session import Session
 
 from flask.json import jsonify
-from threading import Thread
-from .config import *
-from datetime import datetime
+from .config.config import *
 import logging
 import uuid
-import math
 import os
 import time
 import json
-import sys
+
 
 class Error(Enum):
     ERROR_STATE = 'error_state'
@@ -43,9 +40,9 @@ class web(core):
     
 
     def jwxt(self):
-        from .user import user
-        from .webvpn import webvpn
-        from .jwxt import jwxt
+        from .jwxt.user import user
+        from .webvpn.webvpn import webvpn
+        from .jwxt.student import jwxt
 
         stdID = '学号'
 

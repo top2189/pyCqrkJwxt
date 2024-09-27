@@ -1,5 +1,4 @@
-from cqrk.core import core
-
+from ..base.core import core
 
 from typing import Union
 import requests

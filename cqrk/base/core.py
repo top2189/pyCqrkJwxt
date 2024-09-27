@@ -1,8 +1,7 @@
-import cqrk.config as config
+import cqrk.config.config as config
 
 from datetime import datetime
 import logging
-import time
 
 import os
 import colorlog
@@ -23,9 +22,6 @@ class core:
         self.logger   = logging.getLogger(__name__)
         self.config   = config
 
-        # self.user     = user
-        # self.pwd      = pwd
-
         if not isinstance(DEBUG,bool):
             DEBUG = self.config.DEBUG
         
@@ -34,26 +30,6 @@ class core:
         else:
             Level = logging.INFO
 
-        self.log(Level)
-
-
-    # def setUser(self,user:str):
-    #     """设置目标用户的学号
-
-    #     Args:
-    #         user (str): 学号
-    #     """
-    #     self.user = user
-
-    # def setPassword(self,password:str):
-    #     """设置目标用户的密码
-
-    #     Args:
-    #         password (str): 登录密码
-    #     """
-    #     self.pwd = password
-
-    def log(self,Level):
         log_colors_config = {
             'DEBUG': 'blue',
             'INFO': 'green',

@@ -29,7 +29,7 @@ User.username = '用户名'
 User.password = '密  码'
 User.auth()
 cookies = User.loadCookie()
-Jwxt = cqrk.jwxt(cookies,use_web_vpn=False)
+Jwxt = cqrk.jwxtStudent(cookies,use_web_vpn=False)
 ```
 
 #### `外网登录（webvpn登录）`
@@ -39,7 +39,7 @@ webVpn.username = '用户名'
 webVpn.password = '密  码'
 webVpn.auth()
 cookies = webVpn.loadCookie()
-Jwxt = cqrk.jwxt(cookies,use_web_vpn=True)
+Jwxt = cqrk.jwxtStudent(cookies,use_web_vpn=True)
 ```
 
 ## 相关接口

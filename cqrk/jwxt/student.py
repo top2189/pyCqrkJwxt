@@ -2,13 +2,13 @@ import pickle
 from typing import Union
 from datetime import datetime
 from bs4 import BeautifulSoup
-from cqrk.core import core
+from ..base.core import core
 import requests
-from .tool import *
+from ..tools.tool import *
 import re
 import os
 
-class jwxt(core):
+class jwxtStudent(core):
     def __init__(self,cookies=None,use_web_vpn=False):
         super().__init__()
 
@@ -111,7 +111,7 @@ class jwxt(core):
         return user_name
         
     
-    def joinCourse(self,course_name,teacher_name='',xk_name='') -> dict:
+    def joinCourse(self,course_name,teacher_name='',xk_name='',preview_course=False) -> dict:
         """ 加入指定名称的课程
 
         Args:
@@ -121,35 +121,81 @@ class jwxt(core):
         Returns:
             返回选课结果
         """
+        # student_info = self.get_student_info()
+        # self.logger.info(f"你好，{student_info['name']}，抢课程序已启动")
+        self.logger.info(f"你好，{self.get_user_name()}，抢课程序已启动")
         jx0502zbid = ''
+        coures_xk_name = ''
         select_course_lists = self.get_select_course_lists()
+
         if xk_name == '':
             jx0502zbid = select_course_lists[0][-1]
+            coures_xk_name = select_course_lists[0][1]
         else:
             for c in select_course_lists:
                 if xk_name in c[1]:
                     jx0502zbid = c[-1]
+                    coures_xk_name = c[1]
+
                     break
 
         if jx0502zbid == '':
             raise Exception('未找到选课名称为“{}”的学期选课'.format(xk_name))
+        
+        self.logger.info(f"已选择【{coures_xk_name}】")
+        course_lists = self.get_course_lists(jx0502zbid=jx0502zbid,preview_course=preview_course)
 
-        course_lists = self.get_course_lists(jx0502zbid)
-        jx0404id = ''
+        self.logger.info(f"课程列表加载完成，共 {len(course_lists)} 门课程")
+
+        xk_list = []
 
         for c in course_lists:
             if course_name in c[0] and teacher_name in c[1]:
-                jx0404id = c[-2]
+                xk_list = c
+                break
+        
+        c_name        = xk_list[0]
+        c_teacher     = xk_list[1]
+        jx0404id      = xk_list[2]
+        optional_nums = xk_list[3]
+        xk_type       = xk_list[-1]
+
+        if c_teacher == '':
+            c_teacher = '无'
+
+        self.logger.warning(f"目标课程【{c_name}】，教师 “{c_teacher}”，可选人数 {optional_nums} 人")
+
+        __oper_lists = [
+            'xxxkOper',
+            'bxxkOper',
+            'ggxxkxkOper'
+        ]
+
+        oper_name = ''
+
+        for oper in __oper_lists:
+            if str(xk_type).lower() in oper:
+                oper_name = oper
                 break
 
         if jx0404id == '':
-            return {'success': False, 'message': '目标课程不存在，请重新选择！'}
+            # return {'success': False, 'message': '目标课程不存在，请重新选择！'}
+            return False
         
-        api = f'/jsxsd/xsxkkc/xxxkOper?jx0404id={jx0404id}'
+        api = f'/jsxsd/xsxkkc/{oper_name}?jx0404id={jx0404id}'
 
-        response = self.get(api=api)
+        data = self.get(api=api).json()
 
-        return response.json()
+        self.logger.info(f"请求选课接口：{self.domain+api}")
+
+        if data['success']:
+            # return {'success': True, 'message': '选课成功！'}
+            self.logger.info('选课成功！')
+            return True
+        else:
+            # return {'success': False, 'message': data['message']}
+            self.logger.error(data['message'])
+            return False
 
     def get_select_course_lists(self) -> list:
         "获取选课列表"
@@ -180,16 +226,28 @@ class jwxt(core):
         return result
 
 
-    def get_course_lists(self,jx0502zbid) -> list:
-        """ 获取课程列表
+    def get_course_lists(
+            self,
+            jx0502zbid,
+            only_online_course=False,
+            only_optional=True,
+            preview_course=False
+        ) -> list:
+        """获取课程列表
 
         Args:
-            course_type: 0 必修，1 选修，2 公选
+            jx0502zbid: 通过get_select_course_lists()方法，获取到的参数list[i][-1]
+            only_online_course: 只返回线上课程，默认为False
+            only_optional: 只返回可以选择的课程，即剩余人数大于0的课程，默认为True
+            preview_course: 预览选课，未开抢时，可以预览课程列表，默认为False
+
+        Raises:
+            ValueError: 课程数据获取失败
 
         Returns:
             list: 课程列表
         """
-        
+
         _paths = [
             "xsxkBxxk",
             "xsxkXxxk",
@@ -199,17 +257,23 @@ class jwxt(core):
         # if course_type not in range(3):
         #     raise ValueError("course_type must be in range(3)")
         
-
-
         # api = '/jsxsd/xsxkkc/'+_paths[course_type]
-
-        xsxk_index_html = self.get(api=f'/jsxsd/xsxk/xsxk_index?jx0502zbid={jx0502zbid}').text
-        # https://jwxt-18080.webvpn.cqrk.edu.cn:8480/jsxsd/xsxkkc/comeInXxxk
+        
+        if preview_course:
+            api_index = 'yxxsxk_index'
+        else:
+            api_index = 'xsxk_index'
+            
+        api = f'/jsxsd/xsxk/{api_index}?jx0502zbid={jx0502zbid}'
+        
+        xsxk_index_html = self.get(api=api).text
 
         try:
-            course_type = xsxk_index_html.split('/jsxsd/xsxkkc/comeIn')[1].split('"')[0]
+            course_type = xsxk_index_html.split('comeIn')[1].split('"')[0]
         except:
-            raise ValueError('课程列表获取失败')
+            self.logger.debug('课程列表为空，已修改“preview_course”参数为True')
+            return self.get_course_lists(jx0502zbid,only_online_course,only_optional,True)
+        
         
         api   = ''
         _type = ''
@@ -220,7 +284,7 @@ class jwxt(core):
                 break
         
         if api == '':
-            raise ValueError('课程列表获取失败')
+            raise ValueError('课程列表获取失败_2')
         
         data = {
             'sEcho': 1,
@@ -229,13 +293,37 @@ class jwxt(core):
             'iDisplayLength': 999,
         }
 
+        # http://jwxt.cqrk.edu.cn:18080/jsxsd/xsxkkc/yl_xsxkGgxxkxk?kcxx=&skls=&skxq=&skjc=&sfym=false&sfct=false&szjylb=&sfxx=true
+
         response = self.post(api=api,data=data)
 
         course_lists = response.json()
         data_lists = []
 
         for course in course_lists['aaData']:
-            data_lists.append([course['ktmc'],course['kkapList'][0]['jgxm'],course['jx0404id'],_type])
+            # 授课老师姓名
+            teacher_name = ''
+            try:
+                teacher_name = course['kkapList'][0]['jgxm']
+            except:
+                pass
+
+            # 这里需要注意一下，公选课的课程名字需要获取 course['kcmc']
+            if course_type == 'Ggxxkxk':
+                course_name = course['kcmc']
+                optional_nums = int(course['syrs'])
+            else:
+                course_name = course['ktmc']
+                # 这里没有测试，先些成1
+                optional_nums = 1
+            
+            if only_optional == 0:
+                continue
+
+            if only_online_course and teacher_name != '':
+                continue
+
+            data_lists.append([course_name,teacher_name,course['jx0404id'],optional_nums,_type])
         
         return data_lists
 

@@ -4,7 +4,7 @@ import string
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
 import hashlib
-from .config import keyStr
+from ..config.config import keyStr
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 import json
