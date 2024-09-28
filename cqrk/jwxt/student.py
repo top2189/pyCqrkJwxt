@@ -111,7 +111,7 @@ class jwxtStudent(core):
         return user_name
         
     
-    def joinCourse(self,course_name,teacher_name='',xk_name='',preview_course=False) -> dict:
+    def joinCourse(self,course_name,teacher_name='',xk_name='',preview_course=False) -> bool:
         """ 加入指定名称的课程
 
         Args:
@@ -121,9 +121,9 @@ class jwxtStudent(core):
         Returns:
             返回选课结果
         """
-        # student_info = self.get_student_info()
+        student_info = self.get_my_info()
         # self.logger.info(f"你好，{student_info['name']}，抢课程序已启动")
-        self.logger.info(f"你好，{self.get_user_name()}，抢课程序已启动")
+        self.logger.info(f"你好，{student_info['name']}，抢课程序已启动")
         jx0502zbid = ''
         coures_xk_name = ''
         select_course_lists = self.get_select_course_lists()
@@ -165,6 +165,10 @@ class jwxtStudent(core):
 
         self.logger.warning(f"目标课程【{c_name}】，教师 “{c_teacher}”，可选人数 {optional_nums} 人")
 
+        if optional_nums == 0:
+            self.logger.error('可选人数为0，无法选课')
+            raise Exception('可选人数为0，无法选课')
+
         __oper_lists = [
             'xxxkOper',
             'bxxkOper',
@@ -186,7 +190,7 @@ class jwxtStudent(core):
 
         data = self.get(api=api).json()
 
-        self.logger.info(f"请求选课接口：{self.domain+api}")
+        self.logger.info(f"请求选课接口：{api}")
 
         if data['success']:
             # return {'success': True, 'message': '选课成功！'}
@@ -327,7 +331,7 @@ class jwxtStudent(core):
         
         return data_lists
 
-    def get_student_info(self) -> Union[dict, None]:
+    def get_my_info(self) -> Union[dict, None]:
         """获取学生基本信息
 
         Returns:
@@ -783,7 +787,7 @@ class jwxtStudent(core):
         except:
             self.logger.error('网络连接超时！')
             return False
-        kb_name = f'{self.get_student_info()["name"]}-{sheetID}.xls'
+        kb_name = f'{self.get_my_info()["name"]}-{sheetID}.xls'
 
         if save_dir == '' or not os.path.exists(save_dir):
             kb_path = f"{self.ROOT}/xls/{kb_name}"

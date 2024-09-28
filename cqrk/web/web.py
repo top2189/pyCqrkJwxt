@@ -1,6 +1,7 @@
-from .tools.tool import *
-from .base.core import core
-from .config.powerList import Power
+from ..tools.tool import *
+from ..base.core import core
+from ..config.powerList import Power
+
 
 from enum import Enum
 
@@ -8,7 +9,7 @@ from flask import Flask, render_template, request,abort, redirect, send_file, ur
 from flask_session import Session
 
 from flask.json import jsonify
-from .config.config import *
+from ..config.config import *
 import logging
 import uuid
 import os
@@ -40,9 +41,9 @@ class web(core):
     
 
     def jwxt(self):
-        from .jwxt.user import user
-        from .webvpn.webvpn import webvpn
-        from .jwxt.student import jwxt
+        from ..jwxt.user import user
+        from ..webvpn.webvpn import webvpn
+        from ..jwxt.student import jwxt
 
         stdID = '学号'
 

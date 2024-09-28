@@ -3,16 +3,18 @@ from typing import Union
 
 from bs4 import BeautifulSoup
 from ..base.core import core
+from ..config.config import headers as global_headers
 from cqrk.tools.sensorsdata import sensors
 from urllib.parse import urlparse, parse_qs
 import requests
 import os
 
+
 class webvpn(core):
     def __init__(self,username=None,password=None):
         super().__init__()
 
-        self.headers  = self.config.headers
+        self.headers  = self.config.headers.copy()
         self.username = username
         self.password = password
 
@@ -23,7 +25,8 @@ class webvpn(core):
             self.logger.warning('webvpn登录失效，重新登录中...')
             if not self.login():
                 self.logger.warning('webvpn登录失败')
-                exit()
+                return False
+
         if self.jwxtSSO():
             self.logger.info('教务系统SSO登录成功')
         else:
@@ -67,7 +70,7 @@ class webvpn(core):
         except:
             self.logger.error("读取cookie文件错误")
             return None
-    
+
     def jwxtSSO(self):
         # 单点登录
         request = requests.Session()
@@ -101,11 +104,6 @@ class webvpn(core):
             
         if password is not None:
             self.password = password
-
-        # if self.isLogin(self.loadCookie()):
-        #     self.logger.debug('webvpn使用cookie登录成功')
-            
-        #     return True
         
         request = requests.Session()
         headers = self.headers
@@ -132,22 +130,16 @@ class webvpn(core):
 
         response          = request.get(url=url,headers=headers)
         CQRK_AUTHID       = response.headers['Set-Cookie'].split('CQRKAUTHID=')[1].split(';')[0]
-        # headers['cookie'] = CQRK_AUTHID
-        # request.cookies['CQRK_AUTHID'] = CQRK_AUTHID
-        self.logger.debug(f'GET : /cas/login -> CQRKAUTHID: {CQRK_AUTHID}')
 
         # 神策数据，用户ID生成
         sensorsdata2015jssdkcross = sensors().generate()
         request.cookies['sajssdk_2015_cross_new_user'] = '1'
         request.cookies['sensorsdata2015jssdkcross']   = sensorsdata2015jssdkcross
 
-        # print(response.cookies.get_dict())
         if response.status_code != 200:
             self.logger.warning(f'webvpn请求失败,错误码:{response.status_code}')
             return False
         
-        self.logger.debug(f"Cookies: {response.cookies.get_dict()}")
-
         soup = BeautifulSoup(response.text, 'html.parser')
         soup_clientId = soup.find('input', {'id': 'clientId'})
         if not soup_clientId:
@@ -182,7 +174,6 @@ class webvpn(core):
         callback_url = response.headers['Location']
         uaa_sso_sid  = response.cookies['uaa_sso_sid']
 
-        self.logger.debug(f"Set-cookie: {response.headers['Set-cookie']}")
 
         callback_cookies = {
             '_astraeus_session': cas_cookie.split('_astraeus_session=')[1].split(';',1)[0],
@@ -211,20 +202,20 @@ class webvpn(core):
         # 保存cookie登录凭证
         cookies = request.cookies.get_dict()
         cookies.update(callback_cookies)
-        response.close()
 
-        # sso = requests.get(url='https://jwxt-18080.webvpn.cqrk.edu.cn:8480/jsxsd/sso.jsp',cookies=cookies)
-        # self.logger.debug(f"sso单点登录响应 : {sso.headers['Set-cookie']}")
 
         if self.isLogin(cookies):
             if save_cookies:
                 self.save_cookies(cookies)
+            
+            self.logger.info('webvpn登录成功')
 
-            self.logger.debug('webvpn登录成功')
+            # if not self.jwxtSSO():
+            #     self.logger.warning('教务系统SSO登录失败')
         
             return True
         else:
-            self.logger.debug('webvpn登录失败')
+            self.logger.warning('webvpn登录失败')
             return False
     
     def rmoveCookie(self):
