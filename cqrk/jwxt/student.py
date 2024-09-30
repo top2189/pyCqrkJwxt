@@ -3,8 +3,9 @@ from typing import Union
 from datetime import datetime
 from bs4 import BeautifulSoup
 from ..base.core import core
-import requests
 from ..tools.tool import *
+import requests
+import time
 import re
 import os
 
@@ -43,6 +44,8 @@ class jwxtStudent(core):
         """发送post请求"""
         if headers is None:
             headers = self.config.headers
+
+        
         if url == '':
             url = self.domain + api
         response = requests.post(url=url,data=data, headers=headers, cookies=self.cookies)
@@ -101,15 +104,17 @@ class jwxtStudent(core):
                 break
                     
         return major_id
-    
+
     def get_user_name(self) -> str:
         """获取已经登录的用户名称"""
-        html = self.get(api=self.config.jsMainPage).text
+        t1 = time.time()
+
+        html = self.get(api=self.config.mainPage).text
         soup = BeautifulSoup(html, 'html.parser')
+
         user_name = soup.find('span', attrs={'class': 'glyphicon-class ckgrxx'}).text
         
         return user_name
-        
     
     def joinCourse(self,course_name,teacher_name='',xk_name='',preview_course=False) -> bool:
         """ 加入指定名称的课程
@@ -337,7 +342,7 @@ class jwxtStudent(core):
         Returns:
             (dict | None): 成功返回dict，失败返回None
         """
-        response = self.get(api=self.config.mainPage)
+        response = self.get(api=self.config.xsMainPage)
         
         if response.status_code != 200:
             return None
@@ -345,13 +350,8 @@ class jwxtStudent(core):
         # 解析HTML内容
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        middletopttxlr = soup.find('div', {'class': 'middletopttxlr'})
-        data = []
-        for ttxlr in middletopttxlr.contents:
-            if ttxlr.name != 'div' : continue
-            wxxcont = ttxlr.find(class_='middletopdwxxcont')
-            if wxxcont and len(wxxcont.text.replace('\xa0','')) != 0:
-                data.append(wxxcont.text)
+        middletopdwxxcont = soup.find_all('div', {'class': 'middletopdwxxcont'})
+        data = [ttxlr.text for ttxlr in middletopdwxxcont if ttxlr.text.replace('\xa0','') != '']
         
         result = {
             'name':   data[0],
@@ -812,7 +812,7 @@ class jwxtStudent(core):
         Returns:
             BeautifulSoup: soup对象
         """
-        response = self.get(api=self.config.mainPage)
+        response = self.get(api=self.config.xsMainPage)
         if response.status_code != 200:
             self.logger.error(f'响应码错误，错误码{response.status_code}')
             False

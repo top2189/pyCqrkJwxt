@@ -49,10 +49,18 @@ class jwxtTeacher(core):
         response = requests.post(url=url,data=data, headers=headers, cookies=self.cookies)
         return response
 
+    # def get_user_name(self) -> str:
+    #     """获取已经登录的用户名称"""
+    #     html = self.get(api=self.config.jsMainPage).text
+    #     user_name = html.split('姓名：</div><div class="middletopdwxxcont">')[1].split('</div>')[0]
+
+    #     return user_name
+
     def get_user_name(self) -> str:
         """获取已经登录的用户名称"""
-        html = self.get(api=self.config.jsMainPage).text
+        html = self.get(api=self.config.mainPage).text
         soup = BeautifulSoup(html, 'html.parser')
+
         user_name = soup.find('span', attrs={'class': 'glyphicon-class ckgrxx'}).text
         
         return user_name
@@ -71,14 +79,8 @@ class jwxtTeacher(core):
         # 解析HTML内容
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        middletopttxlr = soup.find('div', {'class': 'middletopttxlr'})
-        data = []
-        for ttxlr in middletopttxlr.contents:
-            if ttxlr.name != 'div' : continue
-            wxxcont = ttxlr.find(class_='middletopdwxxcont')
-            if wxxcont and len(wxxcont.text.replace('\xa0','')) != 0:
-                data.append(wxxcont.text)
-        
+        middletopdwxxcont = soup.find_all('div', {'class': 'middletopdwxxcont'})
+        data = [ttxlr.text for ttxlr in middletopdwxxcont if ttxlr.text.replace('\xa0','') != '']
         
         result = {
             'name':   data[0],
